@@ -4,7 +4,7 @@
  */
 {
     "$schema": "node_modules/wrangler/config-schema.json",
-    "name": "yellow-salad-d0ea",
+    "name": "hotdeal-alarm",
     "main": "src/index.ts",
     "secrets_store_secrets": [
         {
