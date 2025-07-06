@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 import { createAuthRoutes } from './view/authView';
 import { createKeywordRoutes } from './view/keywordView';
 
@@ -11,6 +12,17 @@ interface ExtendedCloudflareBindings extends CloudflareBindings {
 }
 
 const app = new Hono<{ Bindings: ExtendedCloudflareBindings }>();
+
+// CORS 설정
+app.use(
+    '*',
+    cors({
+        origin: ['https://tuum.day', 'http://localhost:3000', 'http://localhost:8787'],
+        allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowHeaders: ['Content-Type', 'Authorization'],
+        credentials: true,
+    })
+);
 
 // 기본 메시지 라우트
 app.get('/', (c) => {
