@@ -1,7 +1,7 @@
 import { getConfig } from '../config';
 import { addMyKeyword, createKeyword, deleteKeyword, getKeywordByTitle, getMyKeywordCount, isKeywordUsed, isMyKeyword, selectUsersKeywords, unlinkUserKeyword } from '../repository/keywordRepository';
 import { UserRepository } from '../repository/userRepository';
-import { KeywordCreateResponse, KeywordDeleteResponse, KeywordResponse, UserKeywordsResponse } from '../types/keyword';
+import { KeywordCreateResponse, KeywordDeleteResponse, KeywordResponse } from '../types/keyword';
 import { KEYWORD_LIMITS, normalizeKeyword, validateKeyword } from '../utils/keyword';
 
 // 키워드 등록 서비스
@@ -94,7 +94,7 @@ export async function unlinkKeyword(keywordId: number, userId: string): Promise<
 }
 
 // 사용자 키워드 목록 조회 서비스
-export async function viewUsersKeywords(userId: string): Promise<UserKeywordsResponse> {
+export async function viewUsersKeywords(userId: string): Promise<KeywordResponse[]> {
     // 환경변수 가져오기
     const config = getConfig();
     const { supabaseUrl, supabaseAnonKey } = config;
@@ -107,10 +107,7 @@ export async function viewUsersKeywords(userId: string): Promise<UserKeywordsRes
         title: keyword.title,
     }));
 
-    return {
-        keywords: keywordResponses,
-        count: keywordResponses.length,
-    };
+    return keywordResponses;
 }
 
 // 키워드 ID로 키워드 정보 조회 서비스

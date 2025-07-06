@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { adminMiddleware, authMiddleware } from '../middleware/authMiddleware';
 import { getKeywordById, registerKeyword, unlinkKeyword, viewUsersKeywords } from '../service/keywordService';
 import { AuthEnv, JwtPayload } from '../types/auth';
-import { KeywordCreateRequest, KeywordCreateResponse, UserKeywordsResponse } from '../types/keyword';
+import { KeywordCreateRequest, KeywordCreateResponse } from '../types/keyword';
 
 export function createKeywordRoutes() {
     const app = new Hono<{ Bindings: AuthEnv; Variables: { user?: JwtPayload } }>();
@@ -44,7 +44,7 @@ export function createKeywordRoutes() {
         try {
             const user = c.get('user')!; // authMiddleware를 통과했으므로 반드시 존재
             // 사용자 키워드 목록 조회 서비스 호출
-            const result: UserKeywordsResponse = await viewUsersKeywords(user.userId);
+            const result = await viewUsersKeywords(user.userId);
 
             return c.json(result, 200);
         } catch (error) {
