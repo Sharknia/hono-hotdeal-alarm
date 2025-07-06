@@ -103,16 +103,23 @@ export async function viewUsersKeywords(env: AuthEnv, userId: string): Promise<U
 
 // 키워드 ID로 키워드 정보 조회 서비스
 export async function getKeywordById(env: AuthEnv, keywordId: number): Promise<KeywordResponse | null> {
-    const keywords = await selectUsersKeywords(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, '');
-    const keyword = keywords.find((k) => k.id === keywordId);
+    // 직접 키워드 테이블에서 조회
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 
-    if (!keyword) {
-        return null;
+    const { data, error } = await supabase.from('hotdeal_keywords').select('id, title, wdate').eq('id', keywordId).single();
+
+    if (error) {
+        if (error.code === 'PGRST116') {
+            return null; // 데이터가 없을 때
+        }
+        console.error('Error fetching keyword by id:', error);
+        throw new Error('키워드 조회에 실패했습니다.');
     }
 
     return {
-        id: keyword.id,
-        title: keyword.title,
+        id: data.id,
+        title: data.title,
     };
 }
 
