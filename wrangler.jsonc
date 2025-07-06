@@ -4,7 +4,7 @@
  */
 {
     "$schema": "node_modules/wrangler/config-schema.json",
-    "name": "yellow-salad-d0ea",
+    "name": "hotdeal-alarm",
     "main": "src/index.ts",
     "compatibility_date": "2025-07-05",
     "assets": {
