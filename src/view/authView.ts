@@ -4,12 +4,12 @@ import { authMiddleware } from '../middleware/authMiddleware';
 import { AuthService } from '../service/authService';
 import { AuthEnv, JwtPayload, UserCreateRequest, UserLoginRequest } from '../types/auth';
 
-// 확장된 환경 변수 타입
+// 확장된 환경 변수 타입 (Secrets Store 사용)
 interface ExtendedAuthEnv extends AuthEnv {
-    SUPABASE_URL: string;
-    SUPABASE_ANON_KEY: string;
-    SUPABASE_SERVICE_ROLE_KEY: string;
-    JWT_SECRET: string;
+    SUPABASE_URL: { get(): Promise<string> };
+    SUPABASE_ANON_KEY: { get(): Promise<string> };
+    SUPABASE_SERVICE_ROLE_KEY: { get(): Promise<string> };
+    JWT_SECRET: { get(): Promise<string> };
 }
 
 export function createAuthRoutes() {
@@ -25,12 +25,7 @@ export function createAuthRoutes() {
                 return c.json({ detail: 'Email, password, and nickname are required' }, 422);
             }
 
-            const authService = new AuthService({
-                SUPABASE_URL: c.env.SUPABASE_URL,
-                SUPABASE_ANON_KEY: c.env.SUPABASE_ANON_KEY,
-                SUPABASE_SERVICE_ROLE_KEY: c.env.SUPABASE_SERVICE_ROLE_KEY,
-                JWT_SECRET: c.env.JWT_SECRET,
-            });
+            const authService = new AuthService();
 
             const user = await authService.register(body);
 
@@ -58,12 +53,7 @@ export function createAuthRoutes() {
                 return c.json({ detail: 'Email and password are required' }, 422);
             }
 
-            const authService = new AuthService({
-                SUPABASE_URL: c.env.SUPABASE_URL,
-                SUPABASE_ANON_KEY: c.env.SUPABASE_ANON_KEY,
-                SUPABASE_SERVICE_ROLE_KEY: c.env.SUPABASE_SERVICE_ROLE_KEY,
-                JWT_SECRET: c.env.JWT_SECRET,
-            });
+            const authService = new AuthService();
 
             // 로그인 처리
             const loginResponse = await authService.login(body);
@@ -81,7 +71,10 @@ export function createAuthRoutes() {
 
             return c.json(loginResponse, 200);
         } catch (error) {
+            console.error('로그인 에러:', error);
             if (error instanceof Error) {
+                console.error('에러 메시지:', error.message);
+                console.error('에러 스택:', error.stack);
                 if (error.message === 'User not found') {
                     return c.json({ detail: 'User not found' }, 404);
                 }
@@ -101,12 +94,7 @@ export function createAuthRoutes() {
         try {
             const user = c.get('user')!;
 
-            const authService = new AuthService({
-                SUPABASE_URL: c.env.SUPABASE_URL,
-                SUPABASE_ANON_KEY: c.env.SUPABASE_ANON_KEY,
-                SUPABASE_SERVICE_ROLE_KEY: c.env.SUPABASE_SERVICE_ROLE_KEY,
-                JWT_SECRET: c.env.JWT_SECRET,
-            });
+            const authService = new AuthService();
 
             // 로그아웃 처리
             await authService.logout(user.userId);
@@ -133,12 +121,7 @@ export function createAuthRoutes() {
                 return c.json({ detail: 'Refresh token is required' }, 401);
             }
 
-            const authService = new AuthService({
-                SUPABASE_URL: c.env.SUPABASE_URL,
-                SUPABASE_ANON_KEY: c.env.SUPABASE_ANON_KEY,
-                SUPABASE_SERVICE_ROLE_KEY: c.env.SUPABASE_SERVICE_ROLE_KEY,
-                JWT_SECRET: c.env.JWT_SECRET,
-            });
+            const authService = new AuthService();
 
             const loginResponse = await authService.refreshToken(refreshToken);
 
@@ -173,12 +156,7 @@ export function createAuthRoutes() {
         try {
             const user = c.get('user')!;
 
-            const authService = new AuthService({
-                SUPABASE_URL: c.env.SUPABASE_URL,
-                SUPABASE_ANON_KEY: c.env.SUPABASE_ANON_KEY,
-                SUPABASE_SERVICE_ROLE_KEY: c.env.SUPABASE_SERVICE_ROLE_KEY,
-                JWT_SECRET: c.env.JWT_SECRET,
-            });
+            const authService = new AuthService();
 
             // 사용자 정보 조회
             const userInfo = await authService.getMe(user.userId);

@@ -1,14 +1,16 @@
+import { getConfig } from '../config';
 import { UserRepository } from '../repository/userRepository';
-import { AuthEnv, JwtPayload, LoginResponse, User, UserCreateRequest, UserLoginRequest, UserResponse } from '../types/auth';
+import { JwtPayload, LoginResponse, User, UserCreateRequest, UserLoginRequest, UserResponse } from '../types/auth';
 import { generateJwtToken, hashPassword, verifyJwtToken, verifyPassword } from '../utils/crypto';
 
 export class AuthService {
     private userRepository: UserRepository;
     private jwtSecret: string;
 
-    constructor(env: AuthEnv) {
-        this.userRepository = new UserRepository(env);
-        this.jwtSecret = env.JWT_SECRET;
+    constructor() {
+        const config = getConfig();
+        this.userRepository = new UserRepository();
+        this.jwtSecret = config.jwtSecret;
     }
 
     // 로그인
