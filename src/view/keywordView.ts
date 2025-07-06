@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { adminMiddleware, authMiddleware } from '../middleware/authMiddleware';
 import { getKeywordById, registerKeyword, unlinkKeyword, viewUsersKeywords } from '../service/keywordService';
 import { AuthEnv, JwtPayload } from '../types/auth';
-import { KeywordCreateRequest, KeywordCreateResponse, KeywordDeleteResponse, UserKeywordsResponse } from '../types/keyword';
+import { KeywordCreateRequest, KeywordCreateResponse, UserKeywordsResponse } from '../types/keyword';
 
 export function createKeywordRoutes() {
     const app = new Hono<{ Bindings: AuthEnv; Variables: { user?: JwtPayload } }>();
@@ -69,9 +69,9 @@ export function createKeywordRoutes() {
             }
 
             // 키워드 연결 해제 서비스 호출
-            const result: KeywordDeleteResponse = await unlinkKeyword(c.env, keywordId, user.userId);
+            await unlinkKeyword(c.env, keywordId, user.userId);
 
-            return c.json(result, 200);
+            return c.body(null, 204);
         } catch (error) {
             console.error('키워드 삭제 오류:', error);
 
