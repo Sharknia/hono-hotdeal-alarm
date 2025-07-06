@@ -152,26 +152,28 @@ export async function deleteKeyword(supabaseUrl: string, supabaseServiceRoleKey:
 export async function selectUsersKeywords(supabaseUrl: string, supabaseAnonKey: string, userId: string): Promise<Keyword[]> {
     const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
-    const { data, error } = await supabase
-        .from('user_keywords')
-        .select(
-            `
-            keyword_id,
-            hotdeal_keywords:keyword_id (
-                id,
-                title,
-                wdate
-            )
-        `
-        )
-        .eq('user_id', userId);
+    // 1단계: 사용자의 키워드 ID 목록 가져오기
+    const { data: userKeywords, error: userError } = await supabase.from('user_keywords').select('keyword_id').eq('user_id', userId);
 
-    if (error) {
-        console.error('Error fetching user keywords:', error);
+    if (userError) {
+        console.error('Error fetching user keywords:', userError);
         throw new Error('사용자 키워드 목록 조회에 실패했습니다.');
     }
 
-    return data?.map((item) => item.hotdeal_keywords[0] as Keyword).filter(Boolean) || [];
+    if (!userKeywords || userKeywords.length === 0) {
+        return [];
+    }
+
+    // 2단계: 키워드 ID들로 실제 키워드 정보 가져오기
+    const keywordIds = userKeywords.map((uk) => uk.keyword_id);
+    const { data: keywords, error: keywordError } = await supabase.from('hotdeal_keywords').select('id, title, wdate').in('id', keywordIds);
+
+    if (keywordError) {
+        console.error('Error fetching keywords:', keywordError);
+        throw new Error('키워드 정보 조회에 실패했습니다.');
+    }
+
+    return keywords || [];
 }
 
 // 키워드 사이트 정보 생성
