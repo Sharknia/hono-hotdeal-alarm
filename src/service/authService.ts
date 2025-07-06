@@ -1,6 +1,6 @@
 import { UserRepository } from '../repository/userRepository';
 import { AuthEnv, JwtPayload, LoginResponse, User, UserCreateRequest, UserLoginRequest, UserResponse } from '../types/auth';
-import { generateJwtToken, generateRefreshToken, hashPassword, verifyJwtToken, verifyPassword } from '../utils/crypto';
+import { generateJwtToken, hashPassword, verifyJwtToken, verifyPassword } from '../utils/crypto';
 
 export class AuthService {
     private userRepository: UserRepository;
@@ -32,7 +32,7 @@ export class AuthService {
             throw new Error('Invalid password');
         }
 
-        // JWT 토큰 생성
+        // Access Token 생성 (1시간 유효)
         const jwtPayload: JwtPayload = {
             userId: user.id,
             email: user.email,
@@ -43,20 +43,74 @@ export class AuthService {
 
         const accessToken = await generateJwtToken(jwtPayload, this.jwtSecret, 3600);
 
-        // 리프레시 토큰 생성 및 저장
-        const refreshToken = await generateRefreshToken();
-        await this.userRepository.updateRefreshToken(user.id, refreshToken);
-
         return {
             access_token: accessToken,
             user_id: user.id,
         };
     }
 
-    // 로그아웃
+    // 리프레시 토큰 생성 (7일 유효)
+    async generateRefreshToken(userId: string, email: string): Promise<string> {
+        const refreshPayload = {
+            userId: userId,
+            email: email,
+            type: 'refresh',
+            iat: Math.floor(Date.now() / 1000),
+            exp: Math.floor(Date.now() / 1000) + 604800, // 7일
+        };
+
+        return await generateJwtToken(refreshPayload, this.jwtSecret, 604800);
+    }
+
+    // 토큰 갱신
+    async refreshToken(refreshToken: string): Promise<LoginResponse> {
+        try {
+            // 리프레시 토큰 검증
+            const payload = await verifyJwtToken(refreshToken, this.jwtSecret);
+
+            if (payload.type !== 'refresh') {
+                throw new Error('Invalid refresh token');
+            }
+
+            // 사용자 조회
+            const user = await this.userRepository.findById(payload.userId);
+            if (!user) {
+                throw new Error('User not found');
+            }
+
+            // 계정 활성화 확인
+            if (!user.is_active) {
+                throw new Error('User account is not active');
+            }
+
+            // 새로운 Access Token 생성
+            const jwtPayload: JwtPayload = {
+                userId: user.id,
+                email: user.email,
+                authLevel: user.auth_level,
+                iat: Math.floor(Date.now() / 1000),
+                exp: Math.floor(Date.now() / 1000) + 3600, // 1시간
+            };
+
+            const accessToken = await generateJwtToken(jwtPayload, this.jwtSecret, 3600);
+
+            return {
+                access_token: accessToken,
+                user_id: user.id,
+            };
+        } catch (error) {
+            if (error instanceof Error && error.message === 'Token expired') {
+                throw new Error('Refresh token expired');
+            }
+            throw new Error('Invalid refresh token');
+        }
+    }
+
+    // 로그아웃 (JWT는 상태가 없어서 실제로는 클라이언트에서 토큰 삭제)
     async logout(userId: string): Promise<void> {
-        // 리프레시 토큰 제거
-        await this.userRepository.updateRefreshToken(userId, null);
+        // JWT는 상태가 없으므로 서버에서 할 작업이 없음
+        // 필요하다면 블랙리스트 방식으로 구현할 수 있음
+        return;
     }
 
     // 회원가입
@@ -89,40 +143,6 @@ export class AuthService {
         return this.mapUserToResponse(user);
     }
 
-    // 토큰 갱신
-    async refreshToken(refreshToken: string): Promise<LoginResponse> {
-        // 리프레시 토큰으로 사용자 조회
-        const user = await this.userRepository.findByRefreshToken(refreshToken);
-        if (!user) {
-            throw new Error('Invalid refresh token');
-        }
-
-        // 계정 활성화 확인
-        if (!user.is_active) {
-            throw new Error('User account is not active');
-        }
-
-        // 새로운 JWT 토큰 생성
-        const jwtPayload: JwtPayload = {
-            userId: user.id,
-            email: user.email,
-            authLevel: user.auth_level,
-            iat: Math.floor(Date.now() / 1000),
-            exp: Math.floor(Date.now() / 1000) + 3600, // 1시간
-        };
-
-        const accessToken = await generateJwtToken(jwtPayload, this.jwtSecret, 3600);
-
-        // 새로운 리프레시 토큰 생성 및 저장
-        const newRefreshToken = await generateRefreshToken();
-        await this.userRepository.updateRefreshToken(user.id, newRefreshToken);
-
-        return {
-            access_token: accessToken,
-            user_id: user.id,
-        };
-    }
-
     // 내 정보 조회
     async getMe(userId: string): Promise<UserResponse> {
         const user = await this.userRepository.findById(userId);
@@ -139,6 +159,9 @@ export class AuthService {
             const payload = await verifyJwtToken(token, this.jwtSecret);
             return payload as JwtPayload;
         } catch (error) {
+            if (error instanceof Error && error.message === 'Token expired') {
+                throw new Error('Token expired');
+            }
             throw new Error('Invalid token');
         }
     }

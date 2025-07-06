@@ -65,16 +65,9 @@ export async function verifyJwtToken(token: string, secret: string): Promise<any
     return payload;
 }
 
-// 리프레시 토큰 생성 (랜덤 문자열)
-export async function generateRefreshToken(): Promise<string> {
-    const array = new Uint8Array(32);
-    crypto.getRandomValues(array);
-    return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
-}
-
 // Base64 URL 인코딩
 function base64UrlEncode(str: string): string {
-    const base64 = btoa(str);
+    const base64 = base64Encode(str);
     return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
@@ -84,7 +77,26 @@ function base64UrlDecode(str: string): string {
     while (str.length % 4) {
         str += '=';
     }
-    return atob(str);
+    return base64Decode(str);
+}
+
+// Base64 인코딩 (Cloudflare Workers 환경에서 안전)
+function base64Encode(str: string): string {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(str);
+    const base64 = btoa(String.fromCharCode(...data));
+    return base64;
+}
+
+// Base64 디코딩 (Cloudflare Workers 환경에서 안전)
+function base64Decode(str: string): string {
+    const binaryString = atob(str);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    const decoder = new TextDecoder();
+    return decoder.decode(bytes);
 }
 
 // HMAC 서명 생성

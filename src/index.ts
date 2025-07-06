@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { createAuthRoutes } from './view/authView';
+import { createKeywordRoutes } from './view/keywordView';
 
 // CloudflareBindings 인터페이스 확장
 interface ExtendedCloudflareBindings extends CloudflareBindings {
@@ -21,5 +22,6 @@ app.get('/health', (c) => {
 
 // 인증 라우트 연결
 app.route('/', createAuthRoutes());
+app.route('/', createKeywordRoutes());
 
 export default app;

@@ -65,30 +65,6 @@ export class UserRepository {
         return data as User;
     }
 
-    // 리프레시 토큰 업데이트
-    async updateRefreshToken(userId: string, refreshToken: string | null): Promise<void> {
-        const { error } = await this.supabase.from('users').update({ refresh_token: refreshToken }).eq('id', userId);
-
-        if (error) {
-            throw new Error(`Database error: ${error.message}`);
-        }
-    }
-
-    // 리프레시 토큰으로 사용자 조회
-    async findByRefreshToken(refreshToken: string): Promise<User | null> {
-        const { data, error } = await this.supabase.from('users').select('*').eq('refresh_token', refreshToken).single();
-
-        if (error) {
-            if (error.code === 'PGRST116') {
-                // 레코드가 없는 경우
-                return null;
-            }
-            throw new Error(`Database error: ${error.message}`);
-        }
-
-        return data as User;
-    }
-
     // 사용자 활성화 상태 업데이트
     async updateActiveStatus(userId: string, isActive: boolean): Promise<void> {
         const { error } = await this.supabase.from('users').update({ is_active: isActive }).eq('id', userId);

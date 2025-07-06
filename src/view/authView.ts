@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
-import { getCookie } from 'hono/cookie';
+import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
+import { authMiddleware } from '../middleware/authMiddleware';
 import { AuthService } from '../service/authService';
 import { AuthEnv, JwtPayload, UserCreateRequest, UserLoginRequest } from '../types/auth';
 
@@ -61,7 +62,19 @@ export function createAuthRoutes() {
                 JWT_SECRET: c.env.JWT_SECRET,
             });
 
+            // 로그인 처리
             const loginResponse = await authService.login(body);
+
+            // 리프레시 토큰 생성 및 쿠키 설정
+            const refreshToken = await authService.generateRefreshToken(loginResponse.user_id, body.email);
+
+            setCookie(c, 'refresh_token', refreshToken, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'None',
+                path: '/',
+                maxAge: 604800, // 7일
+            });
 
             return c.json(loginResponse, 200);
         } catch (error) {
@@ -80,15 +93,10 @@ export function createAuthRoutes() {
         }
     });
 
-    // 사용자 로그아웃
-    app.post('/api/user/v1/logout', async (c) => {
+    // 사용자 로그아웃 (인증 미들웨어 적용)
+    app.post('/api/user/v1/logout', authMiddleware(), async (c) => {
         try {
-            const authorization = c.req.header('authorization');
-            if (!authorization) {
-                return c.json({ detail: 'Authorization header is required' }, 401);
-            }
-
-            const token = authorization.replace('Bearer ', '');
+            const user = c.get('user');
 
             const authService = new AuthService({
                 SUPABASE_URL: c.env.SUPABASE_URL,
@@ -96,22 +104,18 @@ export function createAuthRoutes() {
                 JWT_SECRET: c.env.JWT_SECRET,
             });
 
-            // 토큰 검증
-            const payload = await authService.verifyToken(token);
-
             // 로그아웃 처리
-            await authService.logout(payload.userId);
+            await authService.logout(user.userId);
+
+            // 리프레시 토큰 쿠키 삭제
+            deleteCookie(c, 'refresh_token', {
+                path: '/',
+                secure: true,
+                sameSite: 'None',
+            });
 
             return c.json({ message: 'Logout successful' }, 200);
         } catch (error) {
-            if (error instanceof Error) {
-                if (error.message === 'Invalid token') {
-                    return c.json({ detail: 'Invalid token' }, 401);
-                }
-                if (error.message === 'User not found') {
-                    return c.json({ detail: 'User not found' }, 404);
-                }
-            }
             return c.json({ detail: 'Internal server error' }, 500);
         }
     });
@@ -136,6 +140,15 @@ export function createAuthRoutes() {
             return c.json(loginResponse, 200);
         } catch (error) {
             if (error instanceof Error) {
+                if (error.message === 'Refresh token expired') {
+                    // 만료된 리프레시 토큰 쿠키 삭제
+                    deleteCookie(c, 'refresh_token', {
+                        path: '/',
+                        secure: true,
+                        sameSite: 'None',
+                    });
+                    return c.json({ detail: 'Refresh token expired' }, 401);
+                }
                 if (error.message === 'Invalid refresh token') {
                     return c.json({ detail: 'Refresh token expired' }, 401);
                 }
@@ -150,15 +163,10 @@ export function createAuthRoutes() {
         }
     });
 
-    // 내 정보 가져오기
-    app.get('/api/user/v1/me', async (c) => {
+    // 내 정보 가져오기 (인증 미들웨어 적용)
+    app.get('/api/user/v1/me', authMiddleware(), async (c) => {
         try {
-            const authorization = c.req.header('authorization');
-            if (!authorization) {
-                return c.json({ detail: 'Authorization header is required' }, 401);
-            }
-
-            const token = authorization.replace('Bearer ', '');
+            const user = c.get('user');
 
             const authService = new AuthService({
                 SUPABASE_URL: c.env.SUPABASE_URL,
@@ -166,18 +174,12 @@ export function createAuthRoutes() {
                 JWT_SECRET: c.env.JWT_SECRET,
             });
 
-            // 토큰 검증
-            const payload = await authService.verifyToken(token);
-
             // 사용자 정보 조회
-            const user = await authService.getMe(payload.userId);
+            const userInfo = await authService.getMe(user.userId);
 
-            return c.json(user, 200);
+            return c.json(userInfo, 200);
         } catch (error) {
             if (error instanceof Error) {
-                if (error.message === 'Invalid token') {
-                    return c.json({ detail: 'Invalid token' }, 401);
-                }
                 if (error.message === 'User not found') {
                     return c.json({ detail: 'User not found' }, 404);
                 }

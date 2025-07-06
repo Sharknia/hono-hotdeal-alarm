@@ -1,10 +1,10 @@
-// 인증 레벨 열거형
+// 인증 권한 레벨 enum
 export enum AuthLevel {
     USER = 1,
     ADMIN = 9,
 }
 
-// 유저 모델 타입
+// 사용자 모델 타입
 export interface User {
     id: string;
     nickname: string;
@@ -12,7 +12,6 @@ export interface User {
     hashed_password: string;
     auth_level: AuthLevel;
     is_active: boolean;
-    refresh_token: string | null;
     created_at: string;
     updated_at: string;
 }
@@ -34,9 +33,9 @@ export interface LogoutResponse {
     message: string;
 }
 
-// 사용자 응답 타입
+// 사용자 정보 응답 타입
 export interface UserResponse {
-id: string;
+    id: string;
     email: string;
     nickname: string;
     is_active: boolean;
@@ -57,6 +56,7 @@ export interface JwtPayload {
     authLevel: AuthLevel;
     iat: number;
     exp: number;
+    type?: string; // refresh 토큰 구분용
 }
 
 // 환경 변수 타입
