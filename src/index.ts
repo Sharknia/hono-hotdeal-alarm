@@ -1,14 +1,15 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { initializeConfig } from './config';
 import { createAuthRoutes } from './view/authView';
 import { createKeywordRoutes } from './view/keywordView';
 
 // CloudflareBindings 인터페이스 확장
 interface ExtendedCloudflareBindings extends CloudflareBindings {
-    SUPABASE_URL: string;
-    SUPABASE_ANON_KEY: string;
-    SUPABASE_SERVICE_ROLE_KEY: string;
-    JWT_SECRET: string;
+    SUPABASE_URL: { get(): Promise<string> };
+    SUPABASE_ANON_KEY: { get(): Promise<string> };
+    SUPABASE_SERVICE_ROLE_KEY: { get(): Promise<string> };
+    JWT_SECRET: { get(): Promise<string> };
 }
 
 const app = new Hono<{ Bindings: ExtendedCloudflareBindings }>();
@@ -23,6 +24,17 @@ app.use(
         credentials: true,
     })
 );
+
+// 환경변수 초기화 미들웨어
+app.use('*', async (c, next) => {
+    try {
+        await initializeConfig(c.env);
+        await next();
+    } catch (error) {
+        console.error('환경변수 초기화 실패:', error);
+        return c.json({ detail: 'Server configuration error' }, 500);
+    }
+});
 
 // 기본 메시지 라우트
 app.get('/', (c) => {

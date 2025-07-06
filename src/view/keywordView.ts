@@ -19,7 +19,7 @@ export function createKeywordRoutes() {
             }
 
             // 키워드 등록 서비스 호출
-            const result: KeywordCreateResponse = await registerKeyword(c.env, body.title, user.userId);
+            const result: KeywordCreateResponse = await registerKeyword(body.title, user.userId);
 
             return c.json(result, 201);
         } catch (error) {
@@ -44,7 +44,7 @@ export function createKeywordRoutes() {
         try {
             const user = c.get('user')!; // authMiddleware를 통과했으므로 반드시 존재
             // 사용자 키워드 목록 조회 서비스 호출
-            const result: UserKeywordsResponse = await viewUsersKeywords(c.env, user.userId);
+            const result: UserKeywordsResponse = await viewUsersKeywords(user.userId);
 
             return c.json(result, 200);
         } catch (error) {
@@ -69,7 +69,7 @@ export function createKeywordRoutes() {
             }
 
             // 키워드 연결 해제 서비스 호출
-            await unlinkKeyword(c.env, keywordId, user.userId);
+            await unlinkKeyword(keywordId, user.userId);
 
             return c.body(null, 204);
         } catch (error) {
@@ -102,7 +102,7 @@ export function createKeywordRoutes() {
             }
 
             // 키워드 정보 조회 서비스 호출
-            const result = await getKeywordById(c.env, keywordId);
+            const result = await getKeywordById(keywordId);
 
             if (!result) {
                 return c.json({ detail: 'Keyword not found' }, 404);

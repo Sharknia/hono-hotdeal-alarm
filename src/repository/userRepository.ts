@@ -1,16 +1,17 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { AuthEnv, User, UserCreateRequest } from '../types/auth';
+import { getConfig } from '../config';
+import { User, UserCreateRequest } from '../types/auth';
 
 export class UserRepository {
     private supabaseRead: SupabaseClient; // 읽기 전용 (ANON_KEY)
     private supabaseWrite: SupabaseClient; // 쓰기 전용 (SERVICE_ROLE_KEY)
 
-    constructor(env: AuthEnv) {
+    constructor() {
+        const config = getConfig();
         // 읽기 작업용 클라이언트 (ANON_KEY)
-        this.supabaseRead = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
-
+        this.supabaseRead = createClient(config.supabaseUrl, config.supabaseAnonKey);
         // 쓰기 작업용 클라이언트 (SERVICE_ROLE_KEY)
-        this.supabaseWrite = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+        this.supabaseWrite = createClient(config.supabaseUrl, config.supabaseServiceRoleKey);
     }
 
     // 이메일로 사용자 조회 (읽기 작업)

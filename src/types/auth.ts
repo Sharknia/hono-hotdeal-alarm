@@ -59,10 +59,10 @@ export interface JwtPayload {
     type?: string; // refresh 토큰 구분용
 }
 
-// 환경 변수 타입
+// 환경 변수 타입 (Secrets Store)
 export interface AuthEnv {
-    SUPABASE_URL: string;
-    SUPABASE_ANON_KEY: string;
-    SUPABASE_SERVICE_ROLE_KEY: string;
-    JWT_SECRET: string;
+    SUPABASE_URL: { get(): Promise<string> };
+    SUPABASE_ANON_KEY: { get(): Promise<string> };
+    SUPABASE_SERVICE_ROLE_KEY: { get(): Promise<string> };
+    JWT_SECRET: { get(): Promise<string> };
 }

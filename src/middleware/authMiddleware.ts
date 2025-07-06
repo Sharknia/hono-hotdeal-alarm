@@ -2,12 +2,12 @@ import { Context, Next } from 'hono';
 import { AuthService } from '../service/authService';
 import { AuthLevel, JwtPayload } from '../types/auth';
 
-// 환경 변수 타입
+// 환경 변수 타입 (Secrets Store 사용)
 interface AuthEnv {
-    SUPABASE_URL: string;
-    SUPABASE_ANON_KEY: string;
-    SUPABASE_SERVICE_ROLE_KEY: string;
-    JWT_SECRET: string;
+    SUPABASE_URL: { get(): Promise<string> };
+    SUPABASE_ANON_KEY: { get(): Promise<string> };
+    SUPABASE_SERVICE_ROLE_KEY: { get(): Promise<string> };
+    JWT_SECRET: { get(): Promise<string> };
 }
 
 // 컨텍스트 변수 타입
@@ -41,12 +41,7 @@ export function authMiddleware() {
 
             const token = authHeader.split(' ')[1];
 
-            const authService = new AuthService({
-                SUPABASE_URL: c.env.SUPABASE_URL,
-                SUPABASE_ANON_KEY: c.env.SUPABASE_ANON_KEY,
-                SUPABASE_SERVICE_ROLE_KEY: c.env.SUPABASE_SERVICE_ROLE_KEY,
-                JWT_SECRET: c.env.JWT_SECRET,
-            });
+            const authService = new AuthService();
 
             const payload = await authService.verifyToken(token);
 
@@ -107,12 +102,7 @@ export function activeUserMiddleware() {
                 return c.json({ detail: 'User not authenticated' }, 401);
             }
 
-            const authService = new AuthService({
-                SUPABASE_URL: c.env.SUPABASE_URL,
-                SUPABASE_ANON_KEY: c.env.SUPABASE_ANON_KEY,
-                SUPABASE_SERVICE_ROLE_KEY: c.env.SUPABASE_SERVICE_ROLE_KEY,
-                JWT_SECRET: c.env.JWT_SECRET,
-            });
+            const authService = new AuthService();
 
             const userInfo = await authService.getMe(user.userId);
 
@@ -137,12 +127,7 @@ export async function authenticateUser(c: Context<{ Bindings: AuthEnv }>): Promi
             return null;
         }
 
-        const authService = new AuthService({
-            SUPABASE_URL: c.env.SUPABASE_URL,
-            SUPABASE_ANON_KEY: c.env.SUPABASE_ANON_KEY,
-            SUPABASE_SERVICE_ROLE_KEY: c.env.SUPABASE_SERVICE_ROLE_KEY,
-            JWT_SECRET: c.env.JWT_SECRET,
-        });
+        const authService = new AuthService();
 
         const payload = await authService.verifyToken(token);
         return payload;

@@ -4,10 +4,10 @@
 declare namespace Cloudflare {
     interface Env {
         ASSETS: Fetcher;
-        SUPABASE_URL: string;
-        SUPABASE_ANON_KEY: string;
-        SUPABASE_SERVICE_ROLE_KEY: string;
-        JWT_SECRET: string;
+        SUPABASE_URL: { get(): Promise<string> };
+        SUPABASE_ANON_KEY: { get(): Promise<string> };
+        SUPABASE_SERVICE_ROLE_KEY: { get(): Promise<string> };
+        JWT_SECRET: { get(): Promise<string> };
     }
 }
 interface CloudflareBindings extends Cloudflare.Env {}
