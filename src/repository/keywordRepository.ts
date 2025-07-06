@@ -76,7 +76,6 @@ export async function addMyKeyword(supabaseUrl: string, supabaseServiceRoleKey: 
         .insert({
             user_id: userId,
             keyword_id: keywordId,
-            created_at: new Date().toISOString(),
         })
         .select()
         .single();
