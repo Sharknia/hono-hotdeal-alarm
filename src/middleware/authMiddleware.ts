@@ -6,6 +6,7 @@ import { AuthLevel, JwtPayload } from '../types/auth';
 interface AuthEnv {
     SUPABASE_URL: string;
     SUPABASE_ANON_KEY: string;
+    SUPABASE_SERVICE_ROLE_KEY: string;
     JWT_SECRET: string;
 }
 
@@ -43,6 +44,7 @@ export function authMiddleware() {
             const authService = new AuthService({
                 SUPABASE_URL: c.env.SUPABASE_URL,
                 SUPABASE_ANON_KEY: c.env.SUPABASE_ANON_KEY,
+                SUPABASE_SERVICE_ROLE_KEY: c.env.SUPABASE_SERVICE_ROLE_KEY,
                 JWT_SECRET: c.env.JWT_SECRET,
             });
 
@@ -108,6 +110,7 @@ export function activeUserMiddleware() {
             const authService = new AuthService({
                 SUPABASE_URL: c.env.SUPABASE_URL,
                 SUPABASE_ANON_KEY: c.env.SUPABASE_ANON_KEY,
+                SUPABASE_SERVICE_ROLE_KEY: c.env.SUPABASE_SERVICE_ROLE_KEY,
                 JWT_SECRET: c.env.JWT_SECRET,
             });
 
@@ -137,6 +140,7 @@ export async function authenticateUser(c: Context<{ Bindings: AuthEnv }>): Promi
         const authService = new AuthService({
             SUPABASE_URL: c.env.SUPABASE_URL,
             SUPABASE_ANON_KEY: c.env.SUPABASE_ANON_KEY,
+            SUPABASE_SERVICE_ROLE_KEY: c.env.SUPABASE_SERVICE_ROLE_KEY,
             JWT_SECRET: c.env.JWT_SECRET,
         });
 

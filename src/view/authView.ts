@@ -8,6 +8,7 @@ import { AuthEnv, JwtPayload, UserCreateRequest, UserLoginRequest } from '../typ
 interface ExtendedAuthEnv extends AuthEnv {
     SUPABASE_URL: string;
     SUPABASE_ANON_KEY: string;
+    SUPABASE_SERVICE_ROLE_KEY: string;
     JWT_SECRET: string;
 }
 
@@ -27,6 +28,7 @@ export function createAuthRoutes() {
             const authService = new AuthService({
                 SUPABASE_URL: c.env.SUPABASE_URL,
                 SUPABASE_ANON_KEY: c.env.SUPABASE_ANON_KEY,
+                SUPABASE_SERVICE_ROLE_KEY: c.env.SUPABASE_SERVICE_ROLE_KEY,
                 JWT_SECRET: c.env.JWT_SECRET,
             });
 
@@ -59,6 +61,7 @@ export function createAuthRoutes() {
             const authService = new AuthService({
                 SUPABASE_URL: c.env.SUPABASE_URL,
                 SUPABASE_ANON_KEY: c.env.SUPABASE_ANON_KEY,
+                SUPABASE_SERVICE_ROLE_KEY: c.env.SUPABASE_SERVICE_ROLE_KEY,
                 JWT_SECRET: c.env.JWT_SECRET,
             });
 
@@ -96,11 +99,12 @@ export function createAuthRoutes() {
     // 사용자 로그아웃 (인증 미들웨어 적용)
     app.post('/api/user/v1/logout', authMiddleware(), async (c) => {
         try {
-            const user = c.get('user');
+            const user = c.get('user')!;
 
             const authService = new AuthService({
                 SUPABASE_URL: c.env.SUPABASE_URL,
                 SUPABASE_ANON_KEY: c.env.SUPABASE_ANON_KEY,
+                SUPABASE_SERVICE_ROLE_KEY: c.env.SUPABASE_SERVICE_ROLE_KEY,
                 JWT_SECRET: c.env.JWT_SECRET,
             });
 
@@ -132,6 +136,7 @@ export function createAuthRoutes() {
             const authService = new AuthService({
                 SUPABASE_URL: c.env.SUPABASE_URL,
                 SUPABASE_ANON_KEY: c.env.SUPABASE_ANON_KEY,
+                SUPABASE_SERVICE_ROLE_KEY: c.env.SUPABASE_SERVICE_ROLE_KEY,
                 JWT_SECRET: c.env.JWT_SECRET,
             });
 
@@ -166,11 +171,12 @@ export function createAuthRoutes() {
     // 내 정보 가져오기 (인증 미들웨어 적용)
     app.get('/api/user/v1/me', authMiddleware(), async (c) => {
         try {
-            const user = c.get('user');
+            const user = c.get('user')!;
 
             const authService = new AuthService({
                 SUPABASE_URL: c.env.SUPABASE_URL,
                 SUPABASE_ANON_KEY: c.env.SUPABASE_ANON_KEY,
+                SUPABASE_SERVICE_ROLE_KEY: c.env.SUPABASE_SERVICE_ROLE_KEY,
                 JWT_SECRET: c.env.JWT_SECRET,
             });
 
