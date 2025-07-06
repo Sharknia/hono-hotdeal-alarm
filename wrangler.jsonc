@@ -6,6 +6,28 @@
     "$schema": "node_modules/wrangler/config-schema.json",
     "name": "hotdeal-alarm",
     "main": "src/index.ts",
+    "secrets_store_secrets": [
+        {
+            "binding": "SUPABASE_URL",
+            "store_id": "6e76231cee5f418e80098d7879f89a57",
+            "secret_name": "SUPABASE_URL"
+        },
+        {
+            "binding": "SUPABASE_ANON_KEY",
+            "store_id": "6e76231cee5f418e80098d7879f89a57",
+            "secret_name": "SUPABASE_ANON_KEY"
+        },
+        {
+            "binding": "SUPABASE_SERVICE_ROLE_KEY",
+            "store_id": "6e76231cee5f418e80098d7879f89a57",
+            "secret_name": "SUPABASE_SERVICE_ROLE_KEY"
+        },
+        {
+            "binding": "JWT_SECRET",
+            "store_id": "6e76231cee5f418e80098d7879f89a57",
+            "secret_name": "JWT_SECRET"
+        }
+    ],
     "compatibility_date": "2025-07-05",
     "assets": {
         "binding": "ASSETS",
