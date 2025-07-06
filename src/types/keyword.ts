@@ -44,12 +44,6 @@ export interface KeywordDeleteResponse {
     message: string;
 }
 
-// 사용자 키워드 목록 응답 타입
-export interface UserKeywordsResponse {
-    keywords: KeywordResponse[];
-    count: number;
-}
-
 // 사용자-키워드 연결 테이블 타입
 export interface UserKeyword {
     user_id: string;
