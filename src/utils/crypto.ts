@@ -1,19 +1,15 @@
+import bcrypt from 'bcryptjs';
+
 // Web Crypto API를 사용한 암호화 유틸리티
 
 // 비밀번호 해싱
 export async function hashPassword(password: string): Promise<string> {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-    return hashHex;
+    return bcrypt.hash(password, 10); // 10 rounds salt
 }
 
 // 비밀번호 검증
 export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
-    const hashedInput = await hashPassword(password);
-    return hashedInput === hashedPassword;
+    return bcrypt.compare(password, hashedPassword);
 }
 
 // JWT 토큰 생성
